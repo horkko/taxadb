@@ -1,6 +1,7 @@
 from taxadb.schema import db, DatabaseFactory
 from taxadb.util import fatal
 import sys
+import os
 
 
 class TaxaDB(object):
@@ -10,13 +11,16 @@ class TaxaDB(object):
     classes.
 
     Args:
-        dbname (:obj:`str`): Database name to connect to
+        dbname (:obj:`str`): Database name to connect to, default to
+        TAXADB_DBNAME
         dbtype (:obj:`str`): Database type to connect to (`sqlite`, `postgre`,
-            `mysql`). Default `sqlite`
+            `mysql`). Default TAXADB_DBTYPE then to `sqlite`
         **kwargs: Arbitrary arguments. Supported (username, password, port,
             hostname)
 
     Raises:
+        AttributeError: If dbtype not supported
+        AttributeError: If dbname is None
         AttributeError: If cannot instantiate `taxadb.schema.DatabaseFactory`.
     Attributes:
         MAX_LIST (:obj:`int`): Maximum number of bind variables to pass to
@@ -27,13 +31,32 @@ class TaxaDB(object):
 
     MAX_LIST = 999
 
-    def __init__(self, dbname=None, dbtype='sqlite', **kwargs):
+    def __init__(self, dbname=None, dbtype=None, **kwargs):
         self.db = None
-        self.dbname = dbname
+        self.dbname = None
+        self.dbtype = None
+        taxadbtype = dbtype
+        if taxadbtype is None:
+            if 'TAXADB_DBTYPE' in os.environ:
+                taxadbtype = os.environ.get('TAXADB_DBTYPE')
+            else:
+                taxadbtype = 'sqlite'
+        if taxadbtype not in DatabaseFactory.SUPPORTED_DBS:
+            raise AttributeError(
+                "Database type '%s' not supported %s"
+                % (str(taxadbtype), str(DatabaseFactory.SUPPORTED_DBS)))
+        taxadbname = dbname
+        if 'TAXADB_DBNAME' in os.environ and taxadbname is None:
+            taxadbname = os.environ.get('TAXADB_DBNAME')
+        if taxadbname is None:
+            raise AttributeError("A database name is required")
+
+        self.dbname = taxadbname
+        self.dbtype = taxadbtype
         try:
             self.database = DatabaseFactory(
-                dbname=dbname,
-                dbtype=dbtype,
+                dbname=self.dbname,
+                dbtype=self.dbtype,
                 **kwargs).get_database()
         except AttributeError as err:
             fatal("Can't create database object: %s" % str(err))
@@ -80,6 +103,18 @@ class TaxaDB(object):
             fatal("Too many accession entries to request (%d), max %d" % (
                         len(ids), TaxaDB.MAX_LIST))
         return True
+
+    def get_database(self):
+        """Returns `peewee.database` object"""
+        return self.database
+
+    def get_dbname(self):
+        """Returns database name we are connected to"""
+        return self.dbname
+
+    def get_dbtype(self):
+        """Returns the database type we are working with"""
+        return self.dbtype
 
     def _unmapped_taxid(self, acc, do_exit=False):
         """Prints an error message on stderr an accession number is not mapped

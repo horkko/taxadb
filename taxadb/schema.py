@@ -72,7 +72,7 @@ class DatabaseFactory(object):
         if dbtype not in DatabaseFactory.SUPPORTED_DBS:
             raise AttributeError(
                 "Database type '%s' not supported" % str(dbtype))
-        if not dbname:
+        if dbname is None:
             raise AttributeError("A database name is required")
         self.dbtype = dbtype
         self.dbname = dbname

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import os
 import unittest
 from taxadb.taxadb import TaxaDB
 from taxadb.accessionid import AccessionID
@@ -47,7 +48,8 @@ class TestTaxadb(unittest.TestCase):
         # If config does not contains key sql, it means no config file passed on command line
         # so we default to sqlite test
         if 'sql' not in config:
-            config['sql'] = {'dbtype': 'sqlite', 'dbname': 'taxadb/test/test_db.sqlite'}
+            config['sql'] = {'dbtype': 'sqlite',
+                             'dbname': 'taxadb/test/test_db.sqlite'}
 
         self.dbtype = config['sql']['dbtype']
         # Defaults to sqlite
@@ -71,9 +73,46 @@ class TestTaxadb(unittest.TestCase):
             self.port = int(config['sql']['port'])
 
     def _buildTaxaDBObject(self, obj):
-        sql = obj(dbname=self.dbname, dbtype=self.dbtype, username=self.username, password=self.password,
+        sql = obj(dbname=self.dbname, dbtype=self.dbtype,
+                  username=self.username,
+                  password=self.password,
                   hostname=self.hostname, port=self.port)
         return sql
+
+    @attr('main')
+    @attr('envvar')
+    def test_envvar(self):
+        """Check env var are OK when passed"""
+        os.environ['TAXADB_DBNAME'] = 'envvar_dbname'
+        os.environ['TAXADB_DBTYPE'] = 'sqlite'
+        obj = TaxaDB()
+        self.assertEqual(obj.get_dbname(), 'envvar_dbname')
+        self.assertEqual(obj.get_dbtype(), 'sqlite')
+        # Clean environment
+        del (os.environ['TAXADB_DBNAME'])
+        del (os.environ['TAXADB_DBTYPE'])
+
+    @attr('main')
+    @attr('envvar')
+    def test_envvar_failed(self):
+        """Check we have error with wrong wnv var value"""
+        os.environ['TAXADB_DBNAME'] = 'envvar_dbname'
+        os.environ['TAXADB_DBTYPE'] = 'sqlite3'
+        with self.assertRaises(AttributeError):
+            obj = TaxaDB()
+        # Clean environment
+        del (os.environ['TAXADB_DBNAME'])
+        del (os.environ['TAXADB_DBTYPE'])
+
+    @attr('main')
+    @attr('envvar')
+    def test_envvar_only_dbname(self):
+        """Check we can connect to a sqlite db with only TAXADB_DBNAME"""
+        os.environ['TAXADB_DBNAME'] = 'envvar_dbname'
+        obj = TaxaDB()
+        self.assertEqual(obj.get_dbtype(), 'sqlite')
+        # Clean environment
+        del(os.environ['TAXADB_DBNAME'])
 
     @attr('main')
     def test_table_exists_ok(self):
