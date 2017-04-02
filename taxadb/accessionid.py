@@ -9,11 +9,8 @@ class AccessionID(TaxaDB):
         accession ids.
 
     Args:
-        dbtype (:obj:`str`): Database to connect to
-        dbtype (:obj:`str`): Database type to connect to (`sqlite`, `postgre`,
-            `mysql`). Default `sqlite`
         **kwargs: Arbitrary arguments. Supported (username, password, port,
-            hostname)
+            hostname, config, dbtype, dbname)
 
     Raises:
         SystemExit: If table `accession` does not exist

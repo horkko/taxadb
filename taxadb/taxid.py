@@ -8,19 +8,16 @@ class TaxID(TaxaDB):
     Provide methods to request taxa table and get associated accession ids.
 
     Args:
-        dbtype (:obj:`str`): Database to connect to
-        dbtype (:obj:`str`): Database type to connect to (`sqlite`, `postgre`,
-            `mysql`). Default `sqlite`
         **kwargs: Arbitrary arguments. Supported (username, password, port,
-            hostname)
+            hostname, config, dbtype, dbname)
 
     Raises:
         SystemExit: If table `taxa` does not exist
 
     """
 
-    def __init__(self, dbtype='sqlite', dbname=None, **kwargs):
-        super().__init__(dbtype=dbtype, dbname=dbname, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.check_table_exists(Taxa)
 
     def sci_name(self, taxid):

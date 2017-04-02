@@ -1,3 +1,4 @@
+from peewee import PeeweeException
 from taxadb.schema import db, DatabaseFactory
 from taxadb.util import fatal
 import sys
@@ -10,11 +11,8 @@ class TaxaDB(object):
     classes.
 
     Args:
-        dbname (:obj:`str`): Database name to connect to
-        dbtype (:obj:`str`): Database type to connect to (`sqlite`, `postgre`,
-            `mysql`). Default `sqlite`
         **kwargs: Arbitrary arguments. Supported (username, password, port,
-            hostname)
+            hostname, config, dbtype, dbname)
 
     Raises:
         AttributeError: If cannot instantiate `taxadb.schema.DatabaseFactory`.
@@ -27,23 +25,20 @@ class TaxaDB(object):
 
     MAX_LIST = 999
 
-    def __init__(self, dbname=None, dbtype='sqlite', **kwargs):
+    def __init__(self, **kwargs):
         self.db = None
-        self.dbname = dbname
         try:
-            self.database = DatabaseFactory(
-                dbname=dbname,
-                dbtype=dbtype,
-                **kwargs).get_database()
-        except AttributeError as err:
+            self.dbfact = DatabaseFactory(**kwargs)
+            self.database = self.dbfact.get_database()
+            self.db = db
+            self.db.initialize(self.database)
+            self.db.connect()
+        except (AttributeError, PeeweeException) as err:
             fatal("Can't create database object: %s" % str(err))
-        self.db = db
-        self.db.initialize(self.database)
-        self.db.connect()
 
     def __del__(self):
         """Ensure database connection is closed"""
-        if self.db is not None and not self.db.is_closed():
+        if self.db and self.db is not None and not self.db.is_closed():
             self.db.close()
 
     @classmethod
@@ -80,6 +75,28 @@ class TaxaDB(object):
             fatal("Too many accession entries to request (%d), max %d" % (
                         len(ids), TaxaDB.MAX_LIST))
         return True
+
+    def get(self, name):
+        """Get a database setting from the connection arguments
+
+        Returns:
+            value (:obj:`str`) if found, None otherwise
+        """
+        value = self.dbfact.get(name)
+        return value
+
+    def set(self, option, value, section=DatabaseFactory.DEFAULT_SECTION):
+        """Set a configuration value
+
+        Args:
+            option (:obj:`str`): Config key
+            value (:obj:`str`): Config value
+            section (:obj:`str`): Config section, default 'DBSETTINGS'
+
+        Returns:
+            True
+        """
+        return self.dbfact.set(option, value, section=section)
 
     def _unmapped_taxid(self, acc, do_exit=False):
         """Prints an error message on stderr an accession number is not mapped
