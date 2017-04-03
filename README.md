@@ -107,7 +107,9 @@ connection parameters at object build. Either set `config` parameter to `__init_
     >>> taxids = accession.taxid(my_accessions)
     >>> ...
  ```
-    
+
+Check documentation for more information.
+
 ### Creating the Database
 
 #### Download data
