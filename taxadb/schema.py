@@ -117,7 +117,7 @@ class DatabaseFactory(object):
                         user=self.get('username'),
                         password=self.get('password'),
                         host=self.get('hostname'),
-                        port=self.get('port'))
+                        port=int(self.get('port')))
                 except PeeweeException as err:
                     raise AttributeError("[ERROR] Can't create MySQLDatabase "
                                          "db object: %s" % str(err))
@@ -130,7 +130,7 @@ class DatabaseFactory(object):
                         user=self.get('username'),
                         password=self.get('password'),
                         host=self.get('hostname'),
-                        port=self.get('port'))
+                        port=int(self.get('port')))
                 except PeeweeException as err:
                     raise AttributeError("[ERROR] Can't create "
                                          "PostgresqlDatabase db object: %s"
