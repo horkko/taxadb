@@ -5,7 +5,7 @@ install:
 - pip install -r requirements.txt
 - pip install codecov
 - pip install -e .
-script: nosetests --tc-file taxadb.ini --with-coverage
+script: nosetests --tc-file taxadb.ini --with-coverage --cover-package=taxadb
 notifications:
   email: false
   slack:
