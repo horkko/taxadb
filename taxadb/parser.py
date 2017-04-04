@@ -16,7 +16,8 @@ class TaxaParser(object):
         """
         self._verbose = verbose
 
-    def check_file(self, element):
+    @staticmethod
+    def check_file(element):
         """Make some check on a file
 
         This method is used to check an `element` is a real file.
@@ -147,6 +148,8 @@ class TaxaDumpParser(TaxaParser):
             SystemExit: If `nodes_file` is None or not a file (`check_file`)
 
         """
+        if nodes_file is None:
+            fatal("Please provide an nodes file to set")
         self.check_file(nodes_file)
         self.nodes_file = nodes_file
         return True
@@ -166,6 +169,8 @@ class TaxaDumpParser(TaxaParser):
             SystemExit: If `names_file` is None or not a file (`check_file`)
 
         """
+        if names_file is None:
+            fatal("Please provide an names file to set")
         self.check_file(names_file)
         self.names_file = names_file
         return True

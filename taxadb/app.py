@@ -14,7 +14,7 @@ from taxadb.schema import *
 def download(args):
     """Main function for the 'taxadb download' sub-command.
 
-    This function downloads taxump.tar.gz and the content of the accession2taxid
+    This function downloads taxump.tar.gz and the content of accession2taxid
     directory from the ncbi ftp.
 
     Arguments:

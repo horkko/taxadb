@@ -5,6 +5,7 @@ import unittest
 import os
 from taxadb.taxadb import TaxaDB
 from taxadb.accessionid import AccessionID
+from taxadb.parser import TaxaParser, TaxaDumpParser, Accession2TaxidParser
 from taxadb.taxid import TaxID
 from taxadb.schema import Accession, Taxa
 from taxadb.util import md5_check, fatal
@@ -15,19 +16,16 @@ from testconfig import config
 class TestMainFunc(unittest.TestCase):
     """Class to test global methods"""
 
-    @attr('main')
     def test_max_limit_exceeded(self):
         """Check max length of ids raises an exception"""
         ids = [i for i in range(1, 1001)]
         with self.assertRaises(SystemExit):
             TaxaDB.check_list_ids(ids)
 
-    @attr('main')
     def test_max_limit_ok(self):
         ids = [i for i in range(1, 90)]
         self.assertTrue(TaxaDB.check_list_ids(ids))
 
-    @attr('main')
     def test_wrong_dbtype(self):
         """Check wrong dbtype raises an exception"""
         with self.assertRaises(SystemExit):
@@ -38,7 +36,6 @@ class TestUtils(unittest.TestCase):
     """Class to test taxadb.util"""
 
     @attr('util')
-    @attr('main')
     def test_md5check_success(self):
         """Check md5 is ok"""
         okfile = os.path.join(os.path.dirname(os.path.realpath(__file__)),
@@ -46,7 +43,6 @@ class TestUtils(unittest.TestCase):
         self.assertIsNone(md5_check(okfile))
 
     @attr('util')
-    @attr('main')
     def test_md5check_fails(self):
         """Check md5 fails"""
         badfile = os.path.join(os.path.dirname(os.path.realpath(__file__)),
@@ -55,7 +51,6 @@ class TestUtils(unittest.TestCase):
             md5_check(badfile)
 
     @attr('util')
-    @attr('main')
     def test_fatal_throws(self):
         """Check fatal throws SystemExit"""
         with self.assertRaises(SystemExit):
@@ -140,18 +135,17 @@ class TestTaxadb(unittest.TestCase):
             self.back_env = None
         return self.back_env
 
-    @attr('main')
     def test_table_exists_ok(self):
         """Check the method return True when checking ofr existsing table"""
         obj = self._buildTaxaDBObject(TaxaDB)
         self.assertTrue(obj.check_table_exists(Accession))
         self.assertTrue(obj.check_table_exists(Taxa))
 
-    @attr('main')
     def test_table_exists_failed(self):
         """Check the method throws SystemExit if a table does not exist"""
         from taxadb.schema import BaseModel
         import peewee as pw
+
         class NotFound(BaseModel):
             id = pw.IntegerField(null=False)
             name = pw.CharField()
@@ -160,7 +154,6 @@ class TestTaxadb(unittest.TestCase):
             obj.check_table_exists(NotFound)
 
     @attr('config')
-    @attr('main')
     def test_setconfig_from_envvar(self):
         """Check using configuration from environment variable is ok"""
         self._set_config_from_envvar()
@@ -169,14 +162,12 @@ class TestTaxadb(unittest.TestCase):
         self.assertEqual(db.get('dbtype'), 'sqlite')
 
     @attr('config.1')
-    @attr('main')
     def test_setconfig_nodbname_raises(self):
         """Check method raises SystemExit when no dbname set"""
         with self.assertRaises(SystemExit):
-            db = AccessionID(dbtype='sqlite')
+            AccessionID(dbtype='sqlite')
 
     @attr('config')
-    @attr('main')
     def test_setconfig_from_configfile(self):
         """Check passing a configuration file is ok"""
         db = AccessionID(config=os.path.join(self.testdir, 'taxadb.cfg'))
@@ -184,7 +175,6 @@ class TestTaxadb(unittest.TestCase):
         self.assertEqual(db.get('dbtype'), 'sqlite')
 
     @attr('config')
-    @attr('main')
     def test_set_args(self):
         """Check we can set config from dict as args"""
         db = AccessionID(dbtype='sqlite',
@@ -193,15 +183,13 @@ class TestTaxadb(unittest.TestCase):
         self.assertEqual(os.path.basename(db.get('dbname')), 'test_db.sqlite')
 
     @attr('config')
-    @attr('main')
     def test_set_config_with_wrong_section(self):
         """Check we catch exception by using config file with wrong section"""
         with self.assertRaises(SystemExit):
-            db = AccessionID(config=os.path.join(self.testdir,
-                                                 'taxadb-nosection.cfg'))
+            AccessionID(config=os.path.join(self.testdir,
+                                            'taxadb-nosection.cfg'))
 
     @attr('config')
-    @attr('main')
     def test_get_config_nooption(self):
         """Check get method returns None when an option is not found in the 
         configurtion file"""
@@ -209,7 +197,6 @@ class TestTaxadb(unittest.TestCase):
         self.assertIsNone(db.get('unknown'))
 
     @attr('config')
-    @attr('main')
     def test_set_config_option_unset_section(self):
         """Check set throws AttributeError as required section for settings 
         option is not defined yet"""
@@ -218,15 +205,13 @@ class TestTaxadb(unittest.TestCase):
             db.set('newoption', 'newvalue', section="UNSET_SECCTION")
 
     @attr('getdb')
-    @attr('main')
     def test_getdatabase_nouser_or_nopasswd(self):
         """Check get_database throws SystemExit when no user or no password
          is set"""
         with self.assertRaises(SystemExit):
-            db = AccessionID(dbname='taxadb', dbtype='mysql')
+            AccessionID(dbname='taxadb', dbtype='mysql')
 
     @attr('getdb')
-    @attr('main')
     def test_getdatabase_mysql_nohostname_noport_setdefault(self):
         """Check get_database set default hostname and port for MySQL"""
         try:
@@ -239,7 +224,6 @@ class TestTaxadb(unittest.TestCase):
             unittest.skip("Can't test function: %s" % str(err))
 
     @attr('getdb')
-    @attr('main')
     def test_getdatabase_postgres_nohostname_noport_setdefault(self):
         """Check get_database set default hostname and port for MySQL"""
         try:
@@ -252,14 +236,13 @@ class TestTaxadb(unittest.TestCase):
             unittest.skip("Can't test function: %s" % str(err))
 
     @attr('getdb')
-    @attr('main')
     def test_getdatabase_sqlite_throws(self):
-        """Check get_database throws SystemExit when wrong or inaccessible db"""
+        """Check get_database throws SystemExit when wrong or inaccessible
+         db"""
         with self.assertRaises(SystemExit):
             db = AccessionID(dbname='/unaccessible', dbtype='sqlite')
 
     @attr('accessionid')
-    @attr('main')
     def test_accession_taxid(self):
         """Check the method get the correct taxid for a given accession id"""
         accession = self._buildTaxaDBObject(AccessionID)
@@ -268,8 +251,7 @@ class TestTaxadb(unittest.TestCase):
             self.assertEqual(taxon[0], 'X17276')
             self.assertEqual(taxon[1], 9646)
 
-    @attr('accessionid.1')
-    @attr('main')
+    @attr('accessionid')
     def test_accesion_taxid_null(self):
         """Check method generator throws StopIteration, no results found"""
         accession = self._buildTaxaDBObject(AccessionID)
@@ -278,7 +260,6 @@ class TestTaxadb(unittest.TestCase):
             taxids.__next__()
 
     @attr('accessionid')
-    @attr('main')
     def test_accession_sci_name(self):
         accession = self._buildTaxaDBObject(AccessionID)
         sci_name = accession.sci_name(['Z12029'])
@@ -287,7 +268,6 @@ class TestTaxadb(unittest.TestCase):
             self.assertEqual(taxon[1], 'Bos indicus')
 
     @attr('accessionid')
-    @attr('main')
     def test_accesion_sci_name_null(self):
         """Check method generator throws StopIteration, no results found"""
         accession = self._buildTaxaDBObject(AccessionID)
@@ -296,7 +276,6 @@ class TestTaxadb(unittest.TestCase):
             taxids.__next__()
 
     @attr('accessionid')
-    @attr('main')
     def test_accession_lineage_id(self):
         accession = self._buildTaxaDBObject(AccessionID)
         lineage_id = accession.lineage_id(['X52702'])
@@ -304,12 +283,11 @@ class TestTaxadb(unittest.TestCase):
             self.assertEqual(taxon[0], 'X52702')
             self.assertListEqual(taxon[1], [
                 9771, 9766, 9765, 9761, 9721, 91561, 314145, 1437010, 9347,
-                32525,40674, 32524, 32523, 1338369, 8287, 117571, 117570, 7776,
-                7742, 89593, 7711, 33511, 33213, 6072, 33208, 33154, 2759,
-                131567])
+                32525, 40674, 32524, 32523, 1338369, 8287, 117571, 117570,
+                7776, 7742, 89593, 7711, 33511, 33213, 6072, 33208, 33154,
+                2759, 131567])
 
     @attr('accessionid')
-    @attr('main')
     def test_accesion_lineage_id_null(self):
         """Check method generator throws StopIteration, no results found"""
         accession = self._buildTaxaDBObject(AccessionID)
@@ -318,7 +296,6 @@ class TestTaxadb(unittest.TestCase):
             taxids.__next__()
 
     @attr('accessionid')
-    @attr('main')
     def test_accession_lineage_name(self):
         accession = self._buildTaxaDBObject(AccessionID)
         lineage_name = accession.lineage_name(['X60065'])
@@ -335,7 +312,6 @@ class TestTaxadb(unittest.TestCase):
                 'cellular organisms'])
 
     @attr('accessionid')
-    @attr('main')
     def test_accesion_lineage_name_null(self):
         """Check method generator throws StopIteration, no results found"""
         accession = self._buildTaxaDBObject(AccessionID)
@@ -344,14 +320,12 @@ class TestTaxadb(unittest.TestCase):
             taxids.__next__()
 
     @attr('taxid')
-    @attr('main')
     def test_taxid_sci_name(self):
         taxid = self._buildTaxaDBObject(TaxID)
         name = taxid.sci_name(37572)
         self.assertEqual(name, 'Papilionoidea')
 
     @attr('taxid')
-    @attr('main')
     def test_taxid_sci_name_None(self):
         """Check method returns None, no results found"""
         taxid = self._buildTaxaDBObject(TaxID)
@@ -359,7 +333,6 @@ class TestTaxadb(unittest.TestCase):
         self.assertIsNone(name)
 
     @attr('taxid')
-    @attr('main')
     def test_taxid_lineage_id(self):
         taxid = self._buildTaxaDBObject(TaxID)
         lineage = taxid.lineage_id(9986)
@@ -369,7 +342,6 @@ class TestTaxadb(unittest.TestCase):
             89593, 7711, 33511, 33213, 6072, 33208, 33154, 2759, 131567])
 
     @attr('taxid')
-    @attr('main')
     def test_taxid_lineage_id_reverse(self):
         taxid = self._buildTaxaDBObject(TaxID)
         lineage = taxid.lineage_id(9986, reverse=True)
@@ -379,7 +351,6 @@ class TestTaxadb(unittest.TestCase):
             32525, 9347, 1437010, 314146, 314147, 9975, 9979, 9984, 9986])
 
     @attr('taxid')
-    @attr('main')
     def test_taxid_lineage_id_None(self):
         """Check method returns None, no results found"""
         taxid = self._buildTaxaDBObject(TaxID)
@@ -387,7 +358,6 @@ class TestTaxadb(unittest.TestCase):
         self.assertIsNone(name)
 
     @attr('taxid')
-    @attr('main')
     def test_taxid_lineage_id_revesrse_None(self):
         """Check method returns None, no results found"""
         taxid = self._buildTaxaDBObject(TaxID)
@@ -395,7 +365,6 @@ class TestTaxadb(unittest.TestCase):
         self.assertIsNone(name)
 
     @attr('taxid')
-    @attr('main')
     def test_taxid_lineage_name(self):
         taxid = self._buildTaxaDBObject(TaxID)
         lineage = taxid.lineage_name(33208)
@@ -403,7 +372,6 @@ class TestTaxadb(unittest.TestCase):
                                        'Eukaryota', 'cellular organisms'])
 
     @attr('taxid')
-    @attr('main')
     def test_taxid_lineage_name_reverse(self):
         taxid = self._buildTaxaDBObject(TaxID)
         lineage = taxid.lineage_name(33208, reverse=True)
@@ -411,7 +379,6 @@ class TestTaxadb(unittest.TestCase):
                                        'Opisthokonta', 'Metazoa'])
 
     @attr('taxid')
-    @attr('main')
     def test_taxid_lineage_name_None(self):
         """Check method returns None, no results found"""
         taxid = self._buildTaxaDBObject(TaxID)
@@ -419,7 +386,6 @@ class TestTaxadb(unittest.TestCase):
         self.assertIsNone(name)
 
     @attr('taxid')
-    @attr('main')
     def test_taxid_lineage_name_reverse_None(self):
         """Check method returns None, no results found"""
         taxid = self._buildTaxaDBObject(TaxID)
@@ -427,7 +393,6 @@ class TestTaxadb(unittest.TestCase):
         self.assertIsNone(name)
 
     @attr('taxid')
-    @attr('main')
     def test_taxid_unmapped_taxid_throws(self):
         """Check method throws SystemExit on demand"""
         taxid = self._buildTaxaDBObject(TaxID)
@@ -443,7 +408,101 @@ class TestTaxadbParser(unittest.TestCase):
         self.testdir = os.path.dirname(os.path.realpath(__file__))
         self.nodes = os.path.join(self.testdir, 'test-nodes.dmp')
         self.names = os.path.join(self.testdir, 'test-names.dmp')
+        self.acc = os.path.join(self.testdir, 'test-acc2taxid.gz')
+        self.testdb = os.path.join(self.testdir, 'empty_db.sqlite')
+        self.db = os.path.join(self.testdir, 'test_db.sqlite')
+
+    def tearDown(self):
+        if os.path.exists(self.testdb):
+            os.unlink(self.testdb)
 
     @attr('parser')
     def test_parser_check_file_throws(self):
-        """"""""
+        """Check method throws SystemExit"""
+        TaxaParser()
+        with self.assertRaises(SystemExit):
+            TaxaParser.check_file(None)
+        with self.assertRaises(SystemExit):
+            TaxaParser.check_file('/fakefile')
+        with self.assertRaises(SystemExit):
+            TaxaParser.check_file('/etc')
+
+    @attr('parser')
+    def test_parser_check_file_True(self):
+        """Check method returns True when file is ok"""
+        tp = TaxaParser()
+        self.assertTrue(tp.check_file(self.nodes))
+
+    @attr('parser')
+    def test_parser_verbose(self):
+        """Check method print good message"""
+        import sys
+        from io import StringIO
+        tp = TaxaParser(verbose=True)
+        expected = "[VERBOSE] HELLO"
+        new_out = StringIO()
+        old_out = sys.stdout
+        try:
+            sys.stdout = new_out
+            tp.verbose("HELLO")
+            self.assertEqual(new_out.getvalue().strip(), expected)
+        finally:
+            sys.stdout = old_out
+
+    @attr('parser')
+    def test_taxadumpparser_taxdump_noargs(self):
+        """Check method runs ok"""
+        # Need connection to db. We use an empty db to fill list returned by
+        #  parsing method
+        db = TaxaDB(dbtype='sqlite', dbname=self.testdb)
+        db.db.create_table(Taxa, safe=True)
+        dp = TaxaDumpParser(verbose=True, nodes_file=self.nodes,
+                            names_file=self.names)
+        l = dp.taxdump()
+        self.assertEqual(len(l), 17)
+
+    @attr('parser')
+    def test_taxadumpparser_setnodes_throws(self):
+        """Check method throws when None arg is given"""
+        dp = TaxaDumpParser()
+        with self.assertRaises(SystemExit):
+            dp.set_nodes_file(None)
+
+    @attr('parser')
+    def test_taxadumpparser_setnodes_true(self):
+        """Check methods returns True"""
+        dp = TaxaDumpParser()
+        self.assertTrue(dp.set_nodes_file(self.nodes))
+
+    @attr('parser')
+    def test_taxadumpparser_setnames_throws(self):
+        """Check method throws when None arg is given"""
+        dp = TaxaDumpParser()
+        with self.assertRaises(SystemExit):
+            dp.set_names_file(None)
+
+    @attr('parser')
+    def test_taxadumpparser_setnames_true(self):
+        """Check methods returns True"""
+        dp = TaxaDumpParser()
+        self.assertTrue(dp.set_names_file(self.names))
+
+    @attr('parser')
+    def test_accessionparser_init(self):
+        """Check init is ok"""
+        ap = Accession2TaxidParser(acc_file=self.acc, chunk=500)
+        self.assertEqual(ap.chunk, 500)
+
+    @attr('parser')
+    def test_accessionparser_accession2taxid(self):
+        """Check method yield correct number of entries read from accession 
+        file"""
+        # Need connection to db. We use an empty db to fill list returned by
+        #  parsing method
+        db = TaxaDB(dbtype='sqlite', dbname=self.db)
+        db.db.create_table(Taxa, safe=True)
+        ap = Accession2TaxidParser(acc_file=self.acc, chunk=500)
+        l = ap.accession2taxid()
+        for i in l:
+            print("Length: %d" % len(i))
+
