@@ -97,11 +97,7 @@ class DatabaseFactory(object):
 
         """
         if self.get('dbtype') == 'sqlite':
-            try:
-                return pw.SqliteDatabase(self.get('dbname'))
-            except PeeweeException as err:
-                raise AttributeError("[ERROR] Can't create SqliteDatabase db"
-                                     "object: %s" % str(err))
+            return pw.SqliteDatabase(self.get('dbname'))
         else:
             if self.get('username') is None or self.get('password') is None:
                 raise AttributeError('[ERROR] dbtype %s requires username and'
@@ -109,32 +105,23 @@ class DatabaseFactory(object):
             if self.get('hostname') is None:
                 self.set('hostname', 'localhost')
             if self.get('dbtype') == 'mysql':
-                if self.get('port') is None:
+                if self.get('port') is None or self.get('port') == '':
                     self.set('port', str(3306))
-                try:
-                    return pw.MySQLDatabase(
-                        self.get('dbname'),
-                        user=self.get('username'),
-                        password=self.get('password'),
-                        host=self.get('hostname'),
-                        port=int(self.get('port')))
-                except PeeweeException as err:
-                    raise AttributeError("[ERROR] Can't create MySQLDatabase "
-                                         "db object: %s" % str(err))
+                return pw.MySQLDatabase(
+                    self.get('dbname'),
+                    user=self.get('username'),
+                    password=self.get('password'),
+                    host=self.get('hostname'),
+                    port=int(self.get('port')))
             elif self.get('dbtype') == 'postgres':
-                if self.get('port') is None:
+                if self.get('port') is None or self.get('port') == '':
                     self.set('port', str(5432))
-                try:
-                    return pw.PostgresqlDatabase(
-                        self.get('dbname'),
-                        user=self.get('username'),
-                        password=self.get('password'),
-                        host=self.get('hostname'),
-                        port=int(self.get('port')))
-                except PeeweeException as err:
-                    raise AttributeError("[ERROR] Can't create "
-                                         "PostgresqlDatabase db object: %s"
-                                         % str(err))
+                return pw.PostgresqlDatabase(
+                    self.get('dbname'),
+                    user=self.get('username'),
+                    password=self.get('password'),
+                    host=self.get('hostname'),
+                    port=int(self.get('port')))
 
     def get(self, name, section=DEFAULT_SECTION):
         """Get a database connection setting

@@ -147,6 +147,18 @@ class TestTaxadb(unittest.TestCase):
         self.assertTrue(obj.check_table_exists(Accession))
         self.assertTrue(obj.check_table_exists(Taxa))
 
+    @attr('main')
+    def test_table_exists_failed(self):
+        """Check the method throws SystemExit if a table does not exist"""
+        from taxadb.schema import BaseModel
+        import peewee as pw
+        class NotFound(BaseModel):
+            id = pw.IntegerField(null=False)
+            name = pw.CharField()
+        obj = self._buildTaxaDBObject(TaxaDB)
+        with self.assertRaises(SystemExit):
+            obj.check_table_exists(NotFound)
+
     @attr('config')
     @attr('main')
     def test_setconfig_from_envvar(self):
@@ -239,24 +251,24 @@ class TestTaxadb(unittest.TestCase):
         except SystemExit as err:
             unittest.skip("Can't test function: %s" % str(err))
 
-    @attr('getdb.1')
+    @attr('getdb')
     @attr('main')
     def test_getdatabase_sqlite_throws(self):
-        """Check get_database throws SystemExit when wrong or unaccessible db"""
+        """Check get_database throws SystemExit when wrong or inaccessible db"""
         with self.assertRaises(SystemExit):
             db = AccessionID(dbname='/unaccessible', dbtype='sqlite')
 
     @attr('accessionid')
     @attr('main')
     def test_accession_taxid(self):
-        """Check the method get the correct taxid for a given accesion id"""
+        """Check the method get the correct taxid for a given accession id"""
         accession = self._buildTaxaDBObject(AccessionID)
         taxids = accession.taxid(['X17276'])
         for taxon in taxids:
             self.assertEqual(taxon[0], 'X17276')
             self.assertEqual(taxon[1], 9646)
 
-    @attr('accessionid')
+    @attr('accessionid.1')
     @attr('main')
     def test_accesion_taxid_null(self):
         """Check method generator throws StopIteration, no results found"""
@@ -271,8 +283,8 @@ class TestTaxadb(unittest.TestCase):
         accession = self._buildTaxaDBObject(AccessionID)
         sci_name = accession.sci_name(['Z12029'])
         for taxon in sci_name:
-            assert taxon[0] == 'Z12029'
-            assert taxon[1] == 'Bos indicus'
+            self.assertEqual(taxon[0], 'Z12029')
+            self.assertEqual(taxon[1], 'Bos indicus')
 
     @attr('accessionid')
     @attr('main')
@@ -423,3 +435,15 @@ class TestTaxadb(unittest.TestCase):
             taxid._unmapped_taxid(0000, do_exit=True)
         self.assertTrue(taxid._unmapped_taxid(0000))
 
+
+class TestTaxadbParser(unittest.TestCase):
+    """Test class for taxadb.parser"""
+
+    def setUp(self):
+        self.testdir = os.path.dirname(os.path.realpath(__file__))
+        self.nodes = os.path.join(self.testdir, 'test-nodes.dmp')
+        self.names = os.path.join(self.testdir, 'test-names.dmp')
+
+    @attr('parser')
+    def test_parser_check_file_throws(self):
+        """"""""

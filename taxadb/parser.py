@@ -88,8 +88,9 @@ class TaxaDumpParser(TaxaParser):
         # parse nodes.dmp
         nodes_data = list()
         self.verbose("Loading taxa data ...")
-        ncbi_ids = {str(x['ncbi_taxid']): True for x in Taxa.select(
-            Taxa.ncbi_taxid).dicts()}
+        ncbi_ids = {}
+        for x in Taxa.select(Taxa.ncbi_taxid).dicts():
+            ncbi_ids[str(x['ncbi_taxid'])] = True
         self.verbose("Parsing %s" % str(nodes_file))
         with open(nodes_file, 'r') as f:
             for line in f:
@@ -146,8 +147,6 @@ class TaxaDumpParser(TaxaParser):
             SystemExit: If `nodes_file` is None or not a file (`check_file`)
 
         """
-        if nodes_file is None:
-            fatal("Please provide an accession file to set")
         self.check_file(nodes_file)
         self.nodes_file = nodes_file
         return True
@@ -167,8 +166,6 @@ class TaxaDumpParser(TaxaParser):
             SystemExit: If `names_file` is None or not a file (`check_file`)
 
         """
-        if names_file is None:
-            fatal("Please provide an accession file to set")
         self.check_file(names_file)
         self.names_file = names_file
         return True
@@ -216,8 +213,9 @@ class Accession2TaxidParser(TaxaParser):
         # Some accessions (e.g.: AAA22826) have a taxid = 0
         entries = []
         counter = 0
-        taxids = {str(x['ncbi_taxid']): True for x in Taxa.select(
-            Taxa.ncbi_taxid).dicts()}
+        taxids = {}
+        for x in Taxa.select(Taxa.ncbi_taxid.dicts()):
+            taxids[str(x['ncbi_taxi'])] = True
         # Reach out of memory
         # accessions = {str(x['accession']): True for x in Accession.select(
         #     Accession.accession).dicts()}
