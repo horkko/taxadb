@@ -192,7 +192,7 @@ class Accession2TaxidParser(TaxaParser):
         self.acc_file = acc_file
         self.chunk = chunk
 
-    def accession2taxid(self, acc2taxid=None, chunk=500):
+    def accession2taxid(self, acc2taxid=None, chunk=None):
         """Parses the accession2taxid files
 
         This method parses the accession2taxid file, build a dictionary,
@@ -209,7 +209,7 @@ class Accession2TaxidParser(TaxaParser):
         Args:
             acc2taxid (:obj:`str`): Path to acc2taxid input file (gzipped)
             chunk (:obj:`int`): Chunk size of entries to gather before
-                yielding. Default 500
+                yielding. Default 500 (set at object construction)
 
         Yields:
             list: Chunk size of read entries
@@ -219,16 +219,13 @@ class Accession2TaxidParser(TaxaParser):
         entries = []
         counter = 0
         taxids = {}
-        for x in Taxa.select(Taxa.ncbi_taxid.dicts()):
-            taxids[str(x['ncbi_taxi'])] = True
-        # Reach out of memory
-        # accessions = {str(x['accession']): True for x in Accession.select(
-        #     Accession.accession).dicts()}
+        for x in Taxa.select(Taxa.ncbi_taxid).dicts():
+            taxids[str(x['ncbi_taxid'])] = True
         accessions = {}
         if acc2taxid is None:
             acc2taxid = self.acc_file
         self.check_file(acc2taxid)
-        if not chunk:
+        if chunk is None:
             chunk = self.chunk
         self.verbose("Parsing %s" % str(acc2taxid))
         with gzip.open(acc2taxid, 'rb') as f:
@@ -256,8 +253,8 @@ class Accession2TaxidParser(TaxaParser):
                     yield(entries)
                     entries = []
                     counter = 0
-            if len(entries):
-                yield(entries)
+        if len(entries):
+            yield(entries)
 
     def set_accession_file(self, acc_file):
         """Set the accession file to use

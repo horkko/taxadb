@@ -411,6 +411,7 @@ class TestTaxadbParser(unittest.TestCase):
         self.acc = os.path.join(self.testdir, 'test-acc2taxid.gz')
         self.testdb = os.path.join(self.testdir, 'empty_db.sqlite')
         self.db = os.path.join(self.testdir, 'test_db.sqlite')
+        self.chunk = 500
 
     def tearDown(self):
         if os.path.exists(self.testdb):
@@ -459,7 +460,7 @@ class TestTaxadbParser(unittest.TestCase):
         dp = TaxaDumpParser(verbose=True, nodes_file=self.nodes,
                             names_file=self.names)
         l = dp.taxdump()
-        self.assertEqual(len(l), 17)
+        self.assertEqual(len(l), 14)
 
     @attr('parser')
     def test_taxadumpparser_setnodes_throws(self):
@@ -490,8 +491,8 @@ class TestTaxadbParser(unittest.TestCase):
     @attr('parser')
     def test_accessionparser_init(self):
         """Check init is ok"""
-        ap = Accession2TaxidParser(acc_file=self.acc, chunk=500)
-        self.assertEqual(ap.chunk, 500)
+        ap = Accession2TaxidParser(acc_file=self.acc, chunk=self.chunk)
+        self.assertEqual(ap.chunk, self.chunk)
 
     @attr('parser')
     def test_accessionparser_accession2taxid(self):
@@ -499,10 +500,35 @@ class TestTaxadbParser(unittest.TestCase):
         file"""
         # Need connection to db. We use an empty db to fill list returned by
         #  parsing method
-        db = TaxaDB(dbtype='sqlite', dbname=self.db)
+        db = TaxaDB(dbtype='sqlite', dbname=self.testdb)
         db.db.create_table(Taxa, safe=True)
-        ap = Accession2TaxidParser(acc_file=self.acc, chunk=500)
-        l = ap.accession2taxid()
-        for i in l:
-            print("Length: %d" % len(i))
+        db.db.create_table(Accession, safe=True)
+        # We need to load names.dmp and nodes.dmp
+        tp = TaxaDumpParser(nodes_file=self.nodes, names_file=self.names,
+                            verbose=True)
+        taxa_info = tp.taxdump()
+        with db.db.atomic():
+            for i in range(0, len(taxa_info), self.chunk):
+                Taxa.insert_many(taxa_info[i:i + self.chunk]).execute()
+        ap = Accession2TaxidParser(acc_file=self.acc, chunk=self.chunk,
+                                   verbose=True)
+        acc_list = ap.accession2taxid()
+        total_entrires = 0
+        for accs in acc_list:
+            total_entrires += len(accs)
+        self.assertEqual(total_entrires, 55211)
 
+    @attr('parser')
+    def test_accessionparser_set_accession_file_throws(self):
+        """Check method throws when file is None or does not exists"""
+        ap = Accession2TaxidParser()
+        with self.assertRaises(SystemExit):
+            ap.set_accession_file(None)
+        with self.assertRaises(SystemExit):
+            ap.set_accession_file('/not-real')
+
+    @attr('parser')
+    def test_accesionparser_set_accession_file_True(self):
+        """Check method returns True when correct file is set"""
+        ap = Accession2TaxidParser()
+        self.assertTrue(ap.set_accession_file(self.acc))
