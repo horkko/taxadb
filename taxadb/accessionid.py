@@ -46,8 +46,8 @@ class AccessionID(TaxaDB):
     def sci_name(self, acc_number_list):
         """Get taxonomic scientific name for accession ids
 
-        Given a list of acession numbers, yield the accession number and their
-            associated scientific name as tuples
+        Given a list of accession numbers, yield the accession number and their
+        associated scientific name as tuples
 
         Args:
             acc_number_list (:obj:`list`): a list of accession numbers
@@ -99,7 +99,6 @@ class AccessionID(TaxaDB):
             # for noid in notfound:
             #     self._unmapped_taxid(noid)
 
-
     def lineage_name(self, acc_number_list):
         """Get a lineage name for accession ids
 
@@ -130,4 +129,3 @@ class AccessionID(TaxaDB):
             # TODO: List accession ID not found?
             # for noid in notfound:
             #     self._unmapped_taxid(noid)
-

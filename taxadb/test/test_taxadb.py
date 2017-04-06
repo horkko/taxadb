@@ -191,14 +191,14 @@ class TestTaxadb(unittest.TestCase):
 
     @attr('config')
     def test_get_config_nooption(self):
-        """Check get method returns None when an option is not found in the 
-        configurtion file"""
+        """Check get method returns None when an option is not found in the
+        configuration file"""
         db = AccessionID(config=os.path.join(self.testdir, 'taxadb.cfg'))
         self.assertIsNone(db.get('unknown'))
 
     @attr('config')
     def test_set_config_option_unset_section(self):
-        """Check set throws AttributeError as required section for settings 
+        """Check set throws AttributeError as required section for settings
         option is not defined yet"""
         db = AccessionID(config=os.path.join(self.testdir, 'taxadb.cfg'))
         with self.assertRaises(AttributeError):
@@ -496,7 +496,7 @@ class TestTaxadbParser(unittest.TestCase):
 
     @attr('parser')
     def test_accessionparser_accession2taxid(self):
-        """Check method yield correct number of entries read from accession 
+        """Check method yield correct number of entries read from accession
         file"""
         # Need connection to db. We use an empty db to fill list returned by
         #  parsing method

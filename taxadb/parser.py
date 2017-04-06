@@ -16,6 +16,18 @@ class TaxaParser(object):
         """
         self._verbose = verbose
 
+    def cache_taxids(self):
+        """Load data from taxa table into a dictionary
+
+        Returns:
+            data (:obj:`dict`): Data from taxa table mapped as dictionary
+
+        """
+        data = {}
+        for x in Taxa.select(Taxa.ncbi_taxid).dicts():
+            data[str(x['ncbi_taxid'])] = True
+        return data
+
     @staticmethod
     def check_file(element):
         """Make some check on a file
@@ -89,9 +101,7 @@ class TaxaDumpParser(TaxaParser):
         # parse nodes.dmp
         nodes_data = list()
         self.verbose("Loading taxa data ...")
-        ncbi_ids = {}
-        for x in Taxa.select(Taxa.ncbi_taxid).dicts():
-            ncbi_ids[str(x['ncbi_taxid'])] = True
+        ncbi_ids = self.cache_taxids()
         self.verbose("Parsing %s" % str(nodes_file))
         with open(nodes_file, 'r') as f:
             for line in f:
@@ -218,9 +228,7 @@ class Accession2TaxidParser(TaxaParser):
         # Some accessions (e.g.: AAA22826) have a taxid = 0
         entries = []
         counter = 0
-        taxids = {}
-        for x in Taxa.select(Taxa.ncbi_taxid).dicts():
-            taxids[str(x['ncbi_taxid'])] = True
+        taxids = self.cache_taxids()
         accessions = {}
         if acc2taxid is None:
             acc2taxid = self.acc_file
