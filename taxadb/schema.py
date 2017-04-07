@@ -14,7 +14,7 @@ class BaseModel(pw.Model):
     @staticmethod
     def get_table_name():
         """Get table name
-        
+
         Returns:
             name (:obj:`str`): Table name in database
         """
@@ -38,6 +38,7 @@ class Taxa(BaseModel):
             the taxon (from nodes.dmp)
 
     """
+
     ncbi_taxid = pw.IntegerField(null=False, primary_key=True, unique=True)
     parent_taxid = pw.IntegerField(null=False)
     tax_name = pw.CharField()
@@ -58,6 +59,7 @@ class Accession(BaseModel):
         accession (:obj:`pw.CharField`): the accession number of the sequence.
 
     """
+
     id = pw.PrimaryKeyField()
     taxid = pw.ForeignKeyField(Taxa, related_name='accession')
     accession = pw.CharField(null=False, unique=True)

@@ -100,7 +100,7 @@ class TaxaDB(object):
         return self.dbfact.set(option, value, section=section)
 
     def _unmapped_taxid(self, acc, do_exit=False):
-        """Prints error message to stderr if an accession number is not 
+        """Prints error message to stderr if an accession number is not
         mapped with a taxid
 
         Source ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/README
