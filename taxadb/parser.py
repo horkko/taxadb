@@ -8,12 +8,11 @@ from taxadb.util import fatal
 
 
 class TaxaParser(object):
+
     """Base parser class for taxonomic files"""
 
     def __init__(self, verbose=False):
-        """
-        Base class
-        """
+        """Base class"""
         self._verbose = verbose
 
     def cache_taxids(self):
@@ -61,6 +60,7 @@ class TaxaParser(object):
 
 
 class TaxaDumpParser(TaxaParser):
+
     """Main parser class for ncbi taxdump files
 
     This class is used to parse NCBI taxonomy files found in taxdump.gz archive
@@ -114,7 +114,7 @@ class TaxaDumpParser(TaxaParser):
                     'parent_taxid': line_list[1].strip('\t'),
                     'tax_name': '',
                     'lineage_level': line_list[2].strip('\t')
-                    }
+                }
                 nodes_data.append(data_dict)
         print('parsed nodes')
 
@@ -187,6 +187,7 @@ class TaxaDumpParser(TaxaParser):
 
 
 class Accession2TaxidParser(TaxaParser):
+
     """Main parser class for nucl_xxx_accession2taxid files
 
     This class is used to parse accession2taxid files.
@@ -248,8 +249,8 @@ class Accession2TaxidParser(TaxaParser):
                 if line_list[0] in accessions:
                     continue
                 try:
-                    acc_id = Accession.get(Accession.accession == line_list[0])
-                except Accession.DoesNotExist as err:
+                    Accession.get(Accession.accession == line_list[0])
+                except Accession.DoesNotExist:
                     accessions[line_list[0]] = True
                     data_dict = {
                         'accession': line_list[0],

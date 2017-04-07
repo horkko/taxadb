@@ -135,21 +135,27 @@ class TestTaxadb(unittest.TestCase):
             self.back_env = None
         return self.back_env
 
+    @attr('schema')
     def test_table_exists_ok(self):
         """Check the method return True when checking ofr existsing table"""
         obj = self._buildTaxaDBObject(TaxaDB)
         self.assertTrue(obj.check_table_exists(Accession))
         self.assertTrue(obj.check_table_exists(Taxa))
 
+    @attr('schema')
     def test_table_exists_failed(self):
         """Check the method throws SystemExit if a table does not exist"""
         from taxadb.schema import BaseModel
         import peewee as pw
+        import sys
+
 
         class NotFound(BaseModel):
             id = pw.IntegerField(null=False)
             name = pw.CharField()
         obj = self._buildTaxaDBObject(TaxaDB)
+        print("NotFound table: %s" % NotFound.get_table_name(),
+              file=sys.stderr)
         with self.assertRaises(SystemExit):
             obj.check_table_exists(NotFound)
 

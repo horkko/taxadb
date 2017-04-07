@@ -3,6 +3,7 @@ from taxadb.taxadb import TaxaDB
 
 
 class AccessionID(TaxaDB):
+
     """Main accession class
 
     Provide methods to request accession table and get associated taxonomy for

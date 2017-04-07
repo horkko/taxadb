@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import peewee as pw
-from peewee import PeeweeException
 import os
 from configparser import ConfigParser, NoSectionError
 db = pw.Proxy()
@@ -12,8 +11,18 @@ class BaseModel(pw.Model):
     class Meta:
         database = db
 
+    @staticmethod
+    def get_table_name():
+        """Get table name
+        
+        Returns:
+            name (:obj:`str`): Table name in database
+        """
+        return BaseModel._meta.db_table
+
 
 class Taxa(BaseModel):
+
     """table Taxa.
 
     Each row is a taxon.
@@ -36,6 +45,7 @@ class Taxa(BaseModel):
 
 
 class Accession(BaseModel):
+
     """table Accession.
 
     Each row is a sequence from nucl_*.accession2taxid.gz. Each sequence
@@ -54,6 +64,7 @@ class Accession(BaseModel):
 
 
 class DatabaseFactory(object):
+
     """Database factory to support multiple database type.
 
     This class may be used to create a database for different type (SQLite,

@@ -5,6 +5,7 @@ import sys
 
 
 class TaxaDB(object):
+
     """Main TaxaDB package class
 
     Parent class of the Taxadb application. Use this class to create inheriting
@@ -55,7 +56,7 @@ class TaxaDB(object):
              SystemExit: if `table` does not exist
         """
         if not table.table_exists():
-            fatal("Table %s does not exist" % (str(table._meta.db_table)))
+            fatal("Table %s does not exist" % (str(table.get_table_name())))
         return True
 
     @staticmethod
@@ -72,8 +73,8 @@ class TaxaDB(object):
             SystemExit: If `len` of the list of greater than `MAX_LIST`.
         """
         if len(ids) > TaxaDB.MAX_LIST:
-            fatal("Too many accession entries to request (%d), max %d" % (
-                        len(ids), TaxaDB.MAX_LIST))
+            fatal("Too many accession entries to request (%d), max %d"
+                  % (len(ids), TaxaDB.MAX_LIST))
         return True
 
     def get(self, name):
@@ -99,8 +100,8 @@ class TaxaDB(object):
         return self.dbfact.set(option, value, section=section)
 
     def _unmapped_taxid(self, acc, do_exit=False):
-        """Prints an error message on stderr an accession number is not mapped
-            with a taxid
+        """Prints error message to stderr if an accession number is not 
+        mapped with a taxid
 
         Source ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/README
         >> If for some reason the source organism cannot be mapped to the

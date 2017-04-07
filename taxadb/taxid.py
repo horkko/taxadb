@@ -3,6 +3,7 @@ from taxadb.taxadb import TaxaDB
 
 
 class TaxID(TaxaDB):
+
     """Main class for querying taxid
 
     Provide methods to request taxa table and get associated accession ids.
@@ -34,7 +35,7 @@ class TaxID(TaxaDB):
         try:
             name = Taxa.get(Taxa.ncbi_taxid == taxid).tax_name
             return name
-        except Taxa.DoesNotExist as err:
+        except Taxa.DoesNotExist:
             return None
 
     def lineage_id(self, taxid, reverse=False):
@@ -67,10 +68,10 @@ class TaxID(TaxaDB):
             if reverse is True:
                 lineage_list.reverse()
             return lineage_list
-        except Taxa.DoesNotExist as err:
+        except Taxa.DoesNotExist:
             return None
 
-    def lineage_name(slef, taxid, reverse=False):
+    def lineage_name(self, taxid, reverse=False):
         """Get a lineage name for a taxonomic id
 
         Given a taxid, return its associated lineage
