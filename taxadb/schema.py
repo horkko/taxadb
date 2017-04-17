@@ -50,7 +50,7 @@ class BaseModel(pw.Model):
     def _has_named_index(cls, name):
         indexes = db.get_indexes(cls.get_table_name())
         for idx in indexes:
-            if idx[0] == name:
+            if idx.name == name:
                 return True
         return False
 
@@ -60,7 +60,7 @@ class BaseModel(pw.Model):
             return False
         indexes = db.get_indexes(cls.get_table_name())
         for idx in indexes:
-            if sorted(columns) == sorted(idx[2]):
+            if sorted(columns) == sorted(idx.columns):
                 return True
         return False
 
