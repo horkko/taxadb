@@ -50,7 +50,7 @@ class BaseModel(pw.Model):
     def _has_named_index(cls, name):
         indexes = db.get_indexes(cls.get_table_name())
         for idx in indexes:
-            if idx[0] == name:
+            if idx.name == name:
                 return True
         return False
 
@@ -60,7 +60,7 @@ class BaseModel(pw.Model):
             return False
         indexes = db.get_indexes(cls.get_table_name())
         for idx in indexes:
-            if sorted(columns) == sorted(idx[2]):
+            if sorted(columns) == sorted(idx.columns):
                 return True
         return False
 
@@ -86,7 +86,7 @@ class Taxa(BaseModel):
     ncbi_taxid = pw.IntegerField(null=False, primary_key=True, unique=True)
     parent_taxid = pw.IntegerField(null=False)
     tax_name = pw.CharField()
-    lineage_level = pw.CharField()
+    lineage_level = pw.CharField(max_length=48)
 
 
 class Accession(BaseModel):
@@ -97,16 +97,14 @@ class Accession(BaseModel):
         has a taxid.
 
     Attributes:
-        id (:obj:`pw.PrimaryKeyField`): the primary key
-        taxid (:obj:`pw.ForeignKeyField`): reference to a taxon in the table
-            Taxa.
+        taxid (:obj:`pw.CharField`): reference to a taxon in the table
+            Taxa. Used as primary key
         accession (:obj:`pw.CharField`): the accession number of the sequence.
 
     """
 
-    id = pw.PrimaryKeyField()
+    accession = pw.CharField(primary_key=True, max_length=24)
     taxid = pw.ForeignKeyField(Taxa, related_name='accession')
-    accession = pw.CharField(null=False, unique=True)
 
 
 class DatabaseFactory(object):
