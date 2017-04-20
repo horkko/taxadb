@@ -1,0 +1,11 @@
+0.6.0:
+
+- Table accession does not contains 'id' field as primary key. Primary key
+  is now the accession column instead as it must be a unique field.
+- Once files (nucl_*accession2taxids.gz) are parsed, we check for the existence
+  of an index on column 'accession.accession'. If not here, we create it.
+- Added new options '--fast' and '--version'. '--fast' allow not to check
+  existence of an accession number in table 'accession' when inserting accession
+  number. It increases data loading. Use this option with care.
+  '--version' show actual version of Taxadb.
+
